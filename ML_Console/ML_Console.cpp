@@ -11,14 +11,17 @@ double ReLu(double a) {
 
 int main()
 {
-    Matrix A(2, 4);
+    Matrix A(4, 1);
 
     std::cout << "A:\n";
     A.print();
 
-    double (*op_ReLU)(double) { &ReLu };
+    std::cout << "Append 1 to top of A:\n";
+    A.appendOne().print();
+
+    /* double (*op_ReLU)(double) { &ReLu };
     std::cout << "Activation (elementwise ReLU):\n";
-    A.eWise(op_ReLU).print();
+    A.eWise(op_ReLU).print(); */
     
 }
 

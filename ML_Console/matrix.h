@@ -18,6 +18,8 @@ public:
 
     Matrix eWiseMul(Matrix& M);
 
+    Matrix appendOne();
+
     Matrix operator *(Matrix& M);
     Matrix operator *(int a);
     Matrix operator *(double a);
