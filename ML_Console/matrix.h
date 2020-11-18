@@ -5,16 +5,20 @@
 #include <random>
 #include <iostream> // For debug
 
+#include "activations.h"
+
 class Matrix
 {
 public:
     Matrix(int h, int w, char type = 'r');
     Matrix(const Matrix& M);
+    Matrix();
     ~Matrix();
 
     Matrix transpose();
 
     Matrix eWise(double(*f)(double));
+    Matrix eWise(Base* b, bool dif = false);
 
     Matrix eWiseMul(Matrix& M);
 
@@ -31,6 +35,7 @@ public:
 
     double at(int i, int j);
     void insert(int i, int j, double val);
+    void clear();
 
     Matrix row(int i);
     Matrix col(int j);

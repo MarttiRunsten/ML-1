@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cmath>
 
 #include "network.h"
 
@@ -10,6 +9,10 @@ int main()
     Matrix A(4, 1);
 
     std::cout << "A:\n";
+    A.print();
+
+    std::cout << "Clearing A:\n";
+    A.clear();
     A.print();
 
     /*std::cout << "Append 1 to top of A:\n";

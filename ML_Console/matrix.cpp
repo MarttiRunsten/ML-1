@@ -47,6 +47,13 @@ Matrix::Matrix(const Matrix& M) {
     contents_ = M.contents_;
 }
 
+Matrix::Matrix() {
+    h_ = 1;
+    w_ = 1;
+    std::vector<double> cell(1, 1);
+    contents_.push_back(cell);
+}
+
 Matrix::~Matrix() {}
 
 Matrix Matrix::transpose() {
@@ -64,6 +71,21 @@ Matrix Matrix::eWise(double(*f)(double)) {
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R.insert(i, j, f(at(i, j)));
+        }
+    }
+    return R;
+}
+
+Matrix Matrix::eWise(Base* b, bool dif) {
+    Matrix R(h_, w_, 'o');
+    for (int i = 0; i < h_; i++) {
+        for (int j = 0; j < w_; j++) {
+            if (dif) {
+                R.insert(i, j, b->differential(at(i, j)));
+            }
+            else {
+                R.insert(i, j, b->activation(at(i, j)));
+            }
         }
     }
     return R;
@@ -163,6 +185,10 @@ double Matrix::at(int i, int j) {
 
 void Matrix::insert(int i, int j, double val) {
     contents_.at(i).at(j) = val;
+}
+
+void Matrix::clear() {
+    (*this) * 0;
 }
 
 Matrix Matrix::row(int i) {
