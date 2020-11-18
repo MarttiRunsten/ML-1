@@ -1,20 +1,20 @@
 #include "matrix.h"
 
 Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
+    std::cout << "Constructor, ";
     std::vector<std::vector<double>> c;
     switch (type) {
     case 'm':
         break;
     case 'o':
+        std::cout << "zeros...\n";
         for (int i = 0; i < h_; i++) {
-            std::vector<double> row;
-            for (int j = 0; j < w_; j++) {
-                row.push_back(0);
-            }
+            std::vector<double> row(w_, 0);
             c.push_back(row);
         }
         break;
     case 'i':
+        std::cout << "identity...\n";
         for (int i = 0; i < h_; i++) {
             std::vector<double> row;
             for (int j = 0; j < w_; j++) {
@@ -29,6 +29,7 @@ Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
         }
         break;
     default:
+        std::cout << "random...\n";
         std::random_device rd;
         std::mt19937 g(rd());
         std::uniform_real_distribution<> dis(-1.0, 1.0);
@@ -44,21 +45,24 @@ Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
     contents_ = c;
 }
 
-Matrix::Matrix(Matrix& M) {
-    h_ = M.size().first;
-    w_ = M.size().second;
+Matrix::Matrix(const Matrix& M) {
+    std::cout << "Constructing copy...\n";
+    h_ = M.h_;
+    w_ = M.w_;
     contents_ = M.contents_;
 }
 
 Matrix::~Matrix() {}
 
 Matrix Matrix::transpose() {
-    Matrix R(h_, w_, 'o');
+    std::cout << "Transposing...\n";
+    Matrix R(w_, h_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, at(j, i));
+            R.insert(j, i, at(i, j));
         }
     }
+    std::cout << "Transposing done!\n";
     return R;
 }
 
@@ -83,6 +87,7 @@ Matrix Matrix::eWiseMul(Matrix& M) {
 }
 
 Matrix Matrix::operator *(Matrix& M) {
+    std::cout << "Calculating product...\n";
     if (size().second != M.size().first) {
         Matrix F(1, 1, 'o');
         return F;
@@ -98,6 +103,7 @@ Matrix Matrix::operator *(Matrix& M) {
             R.insert(i, j, s);
         }
     }
+    std::cout << "Product ready!\n";
     return R;
 }
 
@@ -175,7 +181,7 @@ Matrix Matrix::col(int j) {
     return c;
 }
 
-std::pair<int, int> Matrix::size() {
+const std::pair<int, int> Matrix::size() {
     std::pair<int, int> p(h_, w_);
     return p;
 }

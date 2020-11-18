@@ -3,13 +3,13 @@
 #include <vector>
 #include <utility>
 #include <random>
-#include <iostream>
+#include <iostream> // For debug
 
 class Matrix
 {
 public:
     Matrix(int h, int w, char type = 'r');
-    Matrix(Matrix& M);
+    Matrix(const Matrix& M);
     ~Matrix();
 
     Matrix transpose();
@@ -33,7 +33,7 @@ public:
     Matrix row(int i);
     Matrix col(int j);
 
-    std::pair<int, int> size();
+    const std::pair<int, int> size();
 
     void print();
 
