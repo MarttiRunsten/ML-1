@@ -12,6 +12,7 @@ class Matrix
 public:
     Matrix(int h, int w, char type = 'r');
     Matrix(const Matrix& M);
+    Matrix(std::vector<std::vector<double>>& c);
     Matrix();
     ~Matrix();
 

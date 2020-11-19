@@ -1,9 +1,5 @@
 #include "network.h"
 
-Network::Network() {
-
-}
-
 Layer::Layer(Network* parent, int input_size, int layer_size , Base* activation):
 	net_(parent), isize_(input_size) , lsize_(layer_size), activ_(activation) {
 	Matrix W(lsize_, isize_ + 1);
@@ -15,6 +11,8 @@ Layer::Layer(Network* parent, int input_size, int layer_size , Base* activation)
 	O_ = O;
 	D_ = D;
 }
+
+Layer::~Layer(){}
 
 void Layer::feedForward(Matrix& In) {
 	Matrix Inb = In.appendOne();
@@ -39,4 +37,35 @@ void Layer::backpropagate(Matrix& D_upper, Matrix& W_upper) {
 	else {
 		net_->bpDone();
 	}
+}
+
+std::pair<int, int> Layer::size() {
+	std::pair<int, int> s(isize_, lsize_);
+	return s;
+}
+
+void Layer::updateW() {
+
+}
+
+Network::Network() {
+
+}
+
+Network::~Network() {}
+
+void Network::feedInput() {
+
+}
+
+void Network::receiveOutput(Matrix& O) {
+
+}
+
+void Network::backpropagate() {
+
+}
+
+void Network::bpDone() {
+
 }

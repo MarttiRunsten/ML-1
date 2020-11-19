@@ -3,8 +3,6 @@
 Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
     std::vector<std::vector<double>> c;
     switch (type) {
-    case 'm':
-        break;
     case 'o':
         for (int i = 0; i < h_; i++) {
             std::vector<double> row(w_, 0);
@@ -45,6 +43,12 @@ Matrix::Matrix(const Matrix& M) {
     h_ = M.h_;
     w_ = M.w_;
     contents_ = M.contents_;
+}
+
+Matrix::Matrix(std::vector<std::vector<double>>& c) {
+    h_ = c.size();
+    w_ = c.front().size();
+    contents_ = c;
 }
 
 Matrix::Matrix() {
@@ -188,7 +192,11 @@ void Matrix::insert(int i, int j, double val) {
 }
 
 void Matrix::clear() {
-    (*this) * 0;
+    for (int i = 0; i < h_; i++) {
+        for (int j = 0; j < w_; j++) {
+            insert(i, j, 0);
+        }
+    }
 }
 
 Matrix Matrix::row(int i) {
