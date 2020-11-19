@@ -7,8 +7,12 @@ class Network;
 class Layer
 {
 public:
-	Layer(Network* parent, int input_size, int layer_size, Base* activation);
+	Layer(Network* parent);
 	~Layer();
+
+	void setup();
+	void setNext(Layer* n);
+	void setPrev(Layer* p);
 
 	void feedForward(Matrix& In);
 
@@ -31,6 +35,9 @@ private:
 	Matrix I_; // Inputs (Vector)
 
 	void updateW();
+	void makeRelu();
+	void makeLrelu();
+	void makeSigmoid();
 };
 
 class Network
@@ -41,8 +48,6 @@ public:
 
 	void feedInput();
 	void receiveOutput(Matrix& O);
-
-	void backpropagate();
 	void bpDone();
 
 	double getL();
@@ -51,5 +56,15 @@ public:
 private:
 	double lambda_;
 	double rho_;
+	Base* loss_;
+
+	int iter_;
+	int train_; // Not the best way. This is data-independent.
+
+	Layer* in_;
+	Layer* out_;
+
+	void setHypers();
+	void makeLoss();
 };
 

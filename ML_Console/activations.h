@@ -13,11 +13,20 @@ struct ReLU : public Base {
 };
 
 struct LReLU :public Base {
+	LReLU(double leak);
+	~LReLU();
+	double activation(double a) override;
+	double differential(double a) override;
+private:
+	double leak_;
+};
+
+struct Sigmoid : public Base {
 	double activation(double a) override;
 	double differential(double a) override;
 };
 
-struct Sigmoid : public Base {
+struct LTwo : public Base {
 	double activation(double a) override;
 	double differential(double a) override;
 };
