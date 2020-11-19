@@ -6,16 +6,18 @@ Layer::Layer(Network* parent, int input_size, int layer_size , Base* activation)
 	Matrix A(lsize_, 1, 'o');
 	Matrix O(A);
 	Matrix D(A);
+	Matrix I(isize_, 1, 'o');
 	W_ = W;
 	A_ = A;
 	O_ = O;
 	D_ = D;
+	I_ = I;
 }
 
 Layer::~Layer(){}
 
 void Layer::feedForward(Matrix& In) {
-	Matrix Inb = In.appendOne();
+	Matrix Inb = In.appendOne(); // For the bias in matrix W_
 	O_ = ((W_ * Inb).eWise(activ_));
 	if (next_ != nullptr) {
 		next_->feedForward(O_);
@@ -31,6 +33,7 @@ void Layer::backpropagate(Matrix& D_upper, Matrix& W_upper) {
 		Matrix Fp = A_.eWise(activ_, true);
 		D_ = ((W_upper.transpose()) * D_upper).eWiseMul(Fp);
 	}
+	updateW();
 	if (prev_ != nullptr) {
 		prev_->backpropagate(D_, W_);
 	}
@@ -44,8 +47,19 @@ std::pair<int, int> Layer::size() {
 	return s;
 }
 
+/*
+	Not at all compatible with batch learning. For that, all these values need to be averaged and
+	all vectors (like inputs, outputs and deltas) will be matrices. Look into indexing before attempting!
+*/
 void Layer::updateW() {
-
+	Matrix dW(lsize_, isize_ + 1, 'o');
+	for (int i = 0; i < lsize_; i++) {
+		dW.insert(i, 0, -(net_->getL()) * D_.at(i, 0)); // Bias adjustment (NOT BATCH COMPATIBLE)
+		for (int j = 1; j < isize_ + 1; j++) {
+			dW.insert(i, j, -(net_->getL() * I_.at(j, 0) * D_.at(i, 0) + net_->getR() * W_.at(i, j)));
+		}
+	}
+	W_ + dW; // Updating values
 }
 
 Network::Network() {
@@ -68,4 +82,12 @@ void Network::backpropagate() {
 
 void Network::bpDone() {
 
+}
+
+double Network::getL() {
+	return lambda_;
+}
+
+double Network::getR() {
+	return rho_;
 }

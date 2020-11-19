@@ -24,10 +24,11 @@ private:
 	int isize_;
 	int lsize_;
 
-	Matrix W_;
-	Matrix A_;
-	Matrix O_;
-	Matrix D_;
+	Matrix W_; // Bias|Weights (Matrix)
+	Matrix A_; // Sum of weighted inputs and bias per neuron (Vector)
+	Matrix O_; // Output (Vector)
+	Matrix D_; // Deltas (Vector)
+	Matrix I_; // Inputs (Vector)
 
 	void updateW();
 };
@@ -43,6 +44,9 @@ public:
 
 	void backpropagate();
 	void bpDone();
+
+	double getL();
+	double getR();
 
 private:
 	double lambda_;
