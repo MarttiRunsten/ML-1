@@ -132,6 +132,7 @@ void Layer::makeSigmoid() {
 }
 
 Network::Network() {
+	std::cout << "Network constructor\n";
 	in_ = nullptr;
 	out_ = nullptr;
 	loss_ = nullptr;
@@ -174,6 +175,7 @@ Network::Network() {
 			break;
 		}
 	} while (setup);
+	test();
 }
 
 Network::~Network() {}
@@ -213,4 +215,19 @@ void Network::setHypers() {
 void Network::makeLoss() {
 	LTwo l;
 	loss_ = &l;
+}
+
+void Network::test() {
+	bool testing = true;
+	int choice = 0;
+	while (testing) {
+		std::cout << "Testing network.\n[1] Run a forward-back loop\n[2] Quit\n";
+		std::cin >> choice;
+		if (choice == 1) {
+			feedInput();
+		}
+		else if (choice == 2) {
+			return;
+		}
+	}
 }

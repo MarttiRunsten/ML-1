@@ -66,5 +66,7 @@ private:
 
 	void setHypers();
 	void makeLoss();
+
+	void test();
 };
 

@@ -5,13 +5,12 @@
 int main()
 {
     // Testing
+    std::cout << "Start test run\n";
+    Network* net = new Network;
+    std::cout << "End test run\n";
 
-    Matrix A(4, 1);
-
+    net->feedInput();
     
-
-    std::cout << "A:\n";
-    A.print();
 
     /*std::cout << "Append 1 to top of A:\n";
     A.appendOne().print();
