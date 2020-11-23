@@ -1,6 +1,7 @@
 #pragma once
 
 #include "matrix.h"
+#include <cmath>
 
 class Network;
 
@@ -19,6 +20,8 @@ public:
 	void backpropagate(Matrix* D_upper, Matrix* W_upper);
 
 	std::pair<int, int> size();
+	Layer* getPrev();
+	Matrix* getI();
 
 private:
 	Network* net_;
@@ -27,6 +30,8 @@ private:
 	Base* activ_;
 	int isize_;
 	int lsize_;
+	bool isBin_;
+	double leak_;
 
 	Matrix* W_; // Bias|Weights (Matrix)
 	Matrix* A_; // Sum of weighted inputs and bias per neuron (Vector)
@@ -35,9 +40,6 @@ private:
 	Matrix* I_; // Inputs (Vector)
 
 	void updateW();
-	void makeRelu();
-	void makeLrelu();
-	void makeSigmoid();
 };
 
 class Network
@@ -55,10 +57,13 @@ public:
 
 	Layer* getOut();
 
+	Base* RELU;
+	BinBase* LRELU;
+	Base* SIGMOID;
+
 private:
 	double lambda_;
 	double rho_;
-	Base* loss_;
 
 	int iter_;
 	int train_; // Not the best way. This is data-independent.
@@ -66,8 +71,11 @@ private:
 	Layer* in_;
 	Layer* out_;
 
+	double(*sin_)(double) { &sin };
+
 	void setHypers();
-	void makeLoss();
+
+	
 
 	void test();
 };

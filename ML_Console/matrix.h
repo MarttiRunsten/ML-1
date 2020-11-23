@@ -20,9 +20,11 @@ public:
 
     Matrix* eWise(double(*f)(double));
     Matrix* eWise(Base* b, bool dif = false);
+    Matrix* eWiseBin(BinBase* b, double leak, bool dif = false);
     Matrix* eWiseMul(Matrix* M);
 
     Matrix* appendOne();
+    Matrix* removeCol();
 
     Matrix* operator *(Matrix& M);
     Matrix* operator *(int a);

@@ -1,7 +1,6 @@
 #include "network.h"
 
 Layer::Layer(Network* parent): net_(parent) {
-	std::cout << "Layer constructor\n";
 	W_ = nullptr;
 	A_ = nullptr;
 	O_ = nullptr;
@@ -9,16 +8,15 @@ Layer::Layer(Network* parent): net_(parent) {
 	I_ = nullptr;
 	isize_ = 0;
 	lsize_ = 0;
+	leak_ = 0;
+	isBin_ = false;
 	next_ = nullptr;
 	activ_ = nullptr;
 
-	std::cout << "Setting prev_\n";
 	prev_ = net_->getOut();
 	if (prev_ != nullptr) {
-		std::cout << " and prev_->next_\n";
 		prev_->setNext(this);
 	}
-	std::cout << "Constructed\n";
 }
 
 Layer::~Layer() {
@@ -30,7 +28,6 @@ Layer::~Layer() {
 }
 
 void Layer::setup() {
-	std::cout << "Layer::setup\n";
 	if (prev_ == nullptr) {
 		std::cout << "Set input size: ";
 		std::cin >> isize_;
@@ -54,13 +51,16 @@ void Layer::setup() {
 		switch (choice)
 		{
 		case 1:
-			makeRelu();
+			activ_ = net_->RELU;
 			break;
 		case 2:
-			makeLrelu();
+			std::cout << "Choose leak strength (0 to 1): ";
+			std::cin >> leak_;
+			isBin_ = true;
+			activ_ = net_->LRELU;
 			break;
 		case 3:
-			makeSigmoid();
+			activ_ = net_->SIGMOID;
 			break;
 		default:
 			break;
@@ -85,43 +85,61 @@ void Layer::feedForward(Matrix* In) {
 	I_ = In->appendOne(); // For the bias in matrix W_
 	std::cout << "In:\n";
 	In->print();
-	std::cout << "moi\n";
+	delete In;
 	delete A_;
+	std::cout << W_->size().second << " = " << I_->size().first << std::endl;
 	A_ = *W_ * *I_;
-	std::cout << "A_ (size " << I_->size().first << "x" << A_->size().second << "):\n";
-	A_->print();
 	delete O_;
-	O_ = A_->eWise(activ_);
-	std::cout << "O_:\n";
-	O_->print();
+	if (isBin_) {
+		O_ = A_->eWiseBin(net_->LRELU, leak_);
+	}
+	else {
+		O_ = A_->eWise(activ_);
+	}
 	if (next_ != nullptr) {
+		std::cout << "Next layer...\n";
 		next_->feedForward(O_);
 	}
+	std::cout << "Final answer :D\n";
+	O_->print();
 	net_->receiveOutput(O_);
 }
 
 void Layer::backpropagate(Matrix* D_upper, Matrix* W_upper) {
+	std::cout << "Layer::backpropagate ";
 	if (next_ == nullptr) {
+		std::cout << "output layer\n";
 		delete D_;
 		D_ = D_upper->eWiseMul(O_);
 	}
 	else {
-		Matrix* W_t = W_upper->transpose();
-		Matrix* P = *W_t * *D_upper;
-		Matrix* dO = A_->eWise(activ_, true);
+		std::cout << "inner layer\n";
+		Matrix* W_pure = W_upper->removeCol();
+		Matrix* W_t = W_pure->transpose();
+		Matrix* P = *W_t * *D_upper; 
+		Matrix* dO = nullptr;
+		if (isBin_) {
+			dO = A_->eWiseBin(net_->LRELU, leak_, true);
+		}
+		else {
+			dO = A_->eWise(activ_, true);
+		}
 
 		delete D_;
 		D_ = P->eWiseMul(dO);
 
+		delete W_pure;
 		delete W_t;
 		delete P;
 		delete dO;
 	}
 	updateW();
 	if (prev_ != nullptr) {
+		std::cout << "Next layer. Dims: D(" << D_->size().first << "x" << D_->size().second << "), W(" << W_->size().first << "x" << W_->size().second << ")\n";
 		prev_->backpropagate(D_, W_);
 	}
 	else {
+		std::cout << "Layer H1 bp done\n";
 		net_->bpDone();
 	}
 }
@@ -129,6 +147,14 @@ void Layer::backpropagate(Matrix* D_upper, Matrix* W_upper) {
 std::pair<int, int> Layer::size() {
 	std::pair<int, int> s(isize_, lsize_);
 	return s;
+}
+
+Layer* Layer::getPrev() {
+	return prev_;
+}
+
+Matrix* Layer::getI() {
+	return I_;
 }
 
 /*
@@ -143,34 +169,24 @@ void Layer::updateW() {
 			dW->insert(i, j, -(net_->getL() * I_->at(j, 0) * D_->at(i, 0) + net_->getR() * W_->at(i, j)));
 		}
 	}
-	delete W_;
+	Matrix* ptr = W_;
 	W_ = *W_ + *dW;
+	delete ptr;
+	std::cout << "W_ exists: \n";
+	W_->print();
+	std::cout << "dW:\n";
+	dW->print();
 	delete dW;
 }
 
-void Layer::makeRelu() {
-	ReLU a;
-	activ_ = &a;
-}
-
-void Layer::makeLrelu() {
-	double l;
-	std::cout << "Choose leak strength (0 to 1): ";
-	std::cin >> l;
-	LReLU a(l);
-	activ_ = &a;
-}
-
-void Layer::makeSigmoid() {
-	Sigmoid a;
-	activ_ = &a;
-}
-
 Network::Network() {
+	RELU = new ReLU;
+	LRELU = new LReLU;
+	SIGMOID = new Sigmoid;
+
 	std::cout << "Network constructor\n";
 	in_ = nullptr;
 	out_ = nullptr;
-	loss_ = nullptr;
 	train_ = 0;
 	iter_ = 0;
 
@@ -214,7 +230,19 @@ Network::Network() {
 	test();
 }
 
-Network::~Network() {}
+Network::~Network() {
+	std::cout << "Deleting network... ";
+	Layer* ptr = out_;
+	while (ptr != nullptr) {
+		ptr = out_->getPrev();
+		delete out_;
+	}
+
+	delete RELU;
+	delete LRELU;
+	delete SIGMOID;
+	std::cout << "done\n";
+}
 
 void Network::feedInput() {
 	Matrix* I = new Matrix(in_->size().first, 1);
@@ -225,12 +253,16 @@ void Network::feedInput() {
 }
 
 void Network::receiveOutput(Matrix* O) { // set to L2, fitting sine
-	Matrix* NablaL = O->eWise(loss_, true);
+	Matrix* NablaL = *O - *(in_->getI()->eWise(sin_));
+	Matrix* losses = NablaL->eWiseMul(NablaL);
+	std::cout << "Is this loss? (" << losses->eSum() << ")\n";
+	delete losses;
 	out_->backpropagate(NablaL, O);
 	delete NablaL;
 }
 
 void Network::bpDone() {
+	std::cout << "Network::bpDone\n";
 	if (train_ > 0) {
 		feedInput();
 	}
@@ -245,7 +277,6 @@ double Network::getR() {
 }
 
 Layer* Network::getOut() {
-	std::cout << "Network::getOut\n";
 	return out_;
 }
 
@@ -257,22 +288,18 @@ void Network::setHypers() {
 	std::cin >> rho_;
 }
 
-void Network::makeLoss() {
-	LTwo l;
-	loss_ = &l;
-}
-
 void Network::test() {
 	bool testing = true;
 	int choice = 0;
 	while (testing) {
-		std::cout << "Testing network.\n[1] Run a forward-back loop\n[2] Quit\n";
+		std::cout << "Testing network.\n[1] Run a forward-back loop\n[2] 3 test loops\n[Anything else] Quit\n";
 		std::cin >> choice;
 		if (choice == 1) {
 			feedInput();
 		}
 		else if (choice == 2) {
-			return;
+			train_ = 3;
 		}
+		feedInput();
 	}
 }

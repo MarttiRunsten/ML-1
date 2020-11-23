@@ -8,6 +8,14 @@ double Base::differential(double a) {
 	return 0;
 }
 
+double BinBase::activation(double a, double b) {
+	return a;
+}
+
+double BinBase::differential(double a, double b) {
+	return 0;
+}
+
 double ReLU::activation(double a) {
 	if (a < 0) {
 		return 0;
@@ -22,19 +30,16 @@ double ReLU::differential(double a) {
 	return 1;
 }
 
-LReLU::LReLU(double leak): leak_(leak){}
-LReLU::~LReLU(){}
-
-double LReLU::activation(double a) {
+double LReLU::activation(double a, double b) {
 	if (a < 0) {
-		return leak_ * a;
+		return b * a;
 	}
 	return a;
 }
 
-double LReLU::differential(double a) {
+double LReLU::differential(double a, double b) {
 	if (a < 0) {
-		return leak_;
+		return b;
 	}
 	return 1;
 }
@@ -45,12 +50,4 @@ double Sigmoid::activation(double a) {
 
 double Sigmoid::differential(double a) {
 	return activation(a) * (1 - activation(a));
-}
-
-double LTwo::activation(double a) {
-	return (a - sin(a)) * (a - sin(a));
-}
-
-double LTwo::differential(double a) {
-	return a - sin(a);
 }

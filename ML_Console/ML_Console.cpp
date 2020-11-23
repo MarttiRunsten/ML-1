@@ -7,6 +7,7 @@ int main()
     // Testing
     std::cout << "Start test run\n";
     Network* net = new Network;
+    delete net;
     std::cout << "End test run\n";
     
 

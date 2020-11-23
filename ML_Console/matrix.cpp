@@ -58,9 +58,7 @@ Matrix::Matrix() {
     contents_.push_back(cell);
 }
 
-Matrix::~Matrix() {
-    std::cout << "Get rekt matrix\n";
-}
+Matrix::~Matrix() {}
 
 Matrix* Matrix::transpose() {
     Matrix* R = new Matrix(w_, h_, 'o');
@@ -83,6 +81,7 @@ Matrix* Matrix::eWise(double(*f)(double)) {
 }
 
 Matrix* Matrix::eWise(Base* b, bool dif) {
+    std::cout << "Matrix::eWise ";
     Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
@@ -94,16 +93,36 @@ Matrix* Matrix::eWise(Base* b, bool dif) {
             }
         }
     }
+    std::cout << "done\n";
+    return R;
+}
+
+Matrix* Matrix::eWiseBin(BinBase* b, double leak, bool dif) {
+    std::cout << "Matrix::eWiseBin ";
+    Matrix* R = new Matrix(h_, w_, 'o');
+    for (int i = 0; i < h_; i++) {
+        for (int j = 0; j < w_; j++) {
+            if (dif) {
+                R->insert(i, j, b->differential(at(i, j), leak));
+            }
+            else {
+                R->insert(i, j, b->activation(at(i, j), leak));
+            }
+        }
+    }
+    std::cout << "done\n";
     return R;
 }
 
 Matrix* Matrix::eWiseMul(Matrix* M) {
+    std::cout << "Matrix::eWiseMul " << h_ << "x" << w_ << " with " << M->h_ << "x" << M->w_ << '\n';
     Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, (at(i, j)) * (M->at(i, j)));
         }
     }
+    std::cout << "done\n";
     return R;
 }
 
@@ -116,8 +135,20 @@ Matrix* Matrix::appendOne() {
     return R;
 }
 
+Matrix* Matrix::removeCol() {
+    std::cout << "Matrix::removeCol ";
+    Matrix* R = new Matrix(h_, w_ - 1, 'o');
+    for (int i = 0; i < h_; i++) {
+        for (int j = 1; j < w_; j++) {
+            R->insert(i, j - 1, at(i, j));
+        }
+    }
+    std::cout << "done\n";
+    return R;
+}
+
 Matrix* Matrix::operator *(Matrix& M) {
-    std::cout << "Operator *, creating (" << h_ << "x" << M.w_ << ") Matrix ";
+    std::cout << "Operator *, multiplying (" << h_ << "x" << w_ << ") to (" << M.h_ << "x" << M.w_ << ")\n";
     if (size().second != M.size().first) {
         return nullptr;
     }
@@ -132,6 +163,7 @@ Matrix* Matrix::operator *(Matrix& M) {
             R->insert(i, j, s);
         }
     }
+    std::cout << "done\n";
     return R;
 }
 
