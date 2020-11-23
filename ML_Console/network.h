@@ -14,9 +14,9 @@ public:
 	void setNext(Layer* n);
 	void setPrev(Layer* p);
 
-	void feedForward(Matrix& In);
+	void feedForward(Matrix* In);
 
-	void backpropagate(Matrix& D_upper, Matrix& W_upper);
+	void backpropagate(Matrix* D_upper, Matrix* W_upper);
 
 	std::pair<int, int> size();
 
@@ -28,11 +28,11 @@ private:
 	int isize_;
 	int lsize_;
 
-	Matrix W_; // Bias|Weights (Matrix)
-	Matrix A_; // Sum of weighted inputs and bias per neuron (Vector)
-	Matrix O_; // Output (Vector)
-	Matrix D_; // Deltas (Vector)
-	Matrix I_; // Inputs (Vector)
+	Matrix* W_; // Bias|Weights (Matrix)
+	Matrix* A_; // Sum of weighted inputs and bias per neuron (Vector)
+	Matrix* O_; // Output (Vector)
+	Matrix* D_; // Deltas (Vector)
+	Matrix* I_; // Inputs (Vector)
 
 	void updateW();
 	void makeRelu();
@@ -47,11 +47,13 @@ public:
 	~Network();
 
 	void feedInput();
-	void receiveOutput(Matrix& O);
+	void receiveOutput(Matrix* O);
 	void bpDone();
 
 	double getL();
 	double getR();
+
+	Layer* getOut();
 
 private:
 	double lambda_;

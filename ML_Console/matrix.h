@@ -11,26 +11,25 @@ class Matrix
 {
 public:
     Matrix(int h, int w, char type = 'r');
-    Matrix(const Matrix& M);
+    Matrix(const Matrix* ptr);
     Matrix(std::vector<std::vector<double>>& c);
     Matrix();
     ~Matrix();
 
-    Matrix transpose();
+    Matrix* transpose();
 
-    Matrix eWise(double(*f)(double));
-    Matrix eWise(Base* b, bool dif = false);
+    Matrix* eWise(double(*f)(double));
+    Matrix* eWise(Base* b, bool dif = false);
+    Matrix* eWiseMul(Matrix* M);
 
-    Matrix eWiseMul(Matrix& M);
+    Matrix* appendOne();
 
-    Matrix appendOne();
+    Matrix* operator *(Matrix& M);
+    Matrix* operator *(int a);
+    Matrix* operator *(double a);
 
-    Matrix operator *(Matrix& M);
-    Matrix operator *(int a);
-    Matrix operator *(double a);
-
-    Matrix operator +(Matrix& M);
-    Matrix operator -(Matrix& M);
+    Matrix* operator +(Matrix& M);
+    Matrix* operator -(Matrix& M);
 
     double eSum();
 
@@ -38,8 +37,8 @@ public:
     void insert(int i, int j, double val);
     void clear();
 
-    Matrix row(int i);
-    Matrix col(int j);
+    Matrix* row(int i);
+    Matrix* col(int j);
 
     const std::pair<int, int> size();
 

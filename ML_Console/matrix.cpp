@@ -39,10 +39,10 @@ Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
     contents_ = c;
 }
 
-Matrix::Matrix(const Matrix& M) {
-    h_ = M.h_;
-    w_ = M.w_;
-    contents_ = M.contents_;
+Matrix::Matrix(const Matrix* ptr) {
+    h_ = ptr->h_;
+    w_ = ptr->w_;
+    contents_ = ptr->contents_;
 }
 
 Matrix::Matrix(std::vector<std::vector<double>>& c) {
@@ -58,116 +58,118 @@ Matrix::Matrix() {
     contents_.push_back(cell);
 }
 
-Matrix::~Matrix() {}
+Matrix::~Matrix() {
+    std::cout << "Get rekt matrix\n";
+}
 
-Matrix Matrix::transpose() {
-    Matrix R(w_, h_, 'o');
+Matrix* Matrix::transpose() {
+    Matrix* R = new Matrix(w_, h_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(j, i, at(i, j));
+            R->insert(j, i, at(i, j));
         }
     }
     return R;
 }
 
-Matrix Matrix::eWise(double(*f)(double)) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::eWise(double(*f)(double)) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, f(at(i, j)));
+            R->insert(i, j, f(at(i, j)));
         }
     }
     return R;
 }
 
-Matrix Matrix::eWise(Base* b, bool dif) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::eWise(Base* b, bool dif) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             if (dif) {
-                R.insert(i, j, b->differential(at(i, j)));
+                R->insert(i, j, b->differential(at(i, j)));
             }
             else {
-                R.insert(i, j, b->activation(at(i, j)));
+                R->insert(i, j, b->activation(at(i, j)));
             }
         }
     }
     return R;
 }
 
-Matrix Matrix::eWiseMul(Matrix& M) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::eWiseMul(Matrix* M) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, (at(i, j)) * (M.at(i, j)));
+            R->insert(i, j, (at(i, j)) * (M->at(i, j)));
         }
     }
     return R;
 }
 
-Matrix Matrix::appendOne() {
-    Matrix R(h_ + 1, 1, 'o');
-    R.insert(0, 0, 1);
+Matrix* Matrix::appendOne() {
+    Matrix* R = new Matrix(h_ + 1, 1, 'o');
+    R->insert(0, 0, 1);
     for (int i = 0; i < h_; i++) {
-        R.insert(i + 1, 0, at(i, 0));
+        R->insert(i + 1, 0, at(i, 0));
     }
     return R;
 }
 
-Matrix Matrix::operator *(Matrix& M) {
+Matrix* Matrix::operator *(Matrix& M) {
+    std::cout << "Operator *, creating (" << h_ << "x" << M.w_ << ") Matrix ";
     if (size().second != M.size().first) {
-        Matrix F(1, 1, 'o');
-        return F;
+        return nullptr;
     }
-    Matrix R(size().first, M.size().second, 'o');
+    Matrix* R = new Matrix(size().first, M.size().second, 'o');
     double s;
-    for (int i = 0; i < R.size().first; i++) {
-        for (int j = 0; j < R.size().second; j++) {
+    for (int i = 0; i < R->size().first; i++) {
+        for (int j = 0; j < R->size().second; j++) {
             s = 0;
             for (int k = 0; k < size().second; k++) {
                 s += at(i, k) * M.at(k, j);
             }
-            R.insert(i, j, s);
+            R->insert(i, j, s);
         }
     }
     return R;
 }
 
-Matrix Matrix::operator *(int a) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::operator *(int a) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, at(i, j) * a);
+            R->insert(i, j, at(i, j) * a);
         }
     }
     return R;
 }
 
-Matrix Matrix::operator *(const double a) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::operator *(const double a) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, at(i, j) * a);
+            R->insert(i, j, at(i, j) * a);
         }
     }
     return R;
 }
 
-Matrix Matrix::operator +(Matrix& M) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::operator +(Matrix& M) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, at(i, j) + M.at(i, j));
+            R->insert(i, j, at(i, j) + M.at(i, j));
         }
     }
     return R;
 }
 
-Matrix Matrix::operator -(Matrix& M) {
-    Matrix R(h_, w_, 'o');
+Matrix* Matrix::operator -(Matrix& M) {
+    Matrix* R = new Matrix(h_, w_, 'o');
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
-            R.insert(i, j, at(i, j) - M.at(i, j));
+            R->insert(i, j, at(i, j) - M.at(i, j));
         }
     }
     return R;
@@ -199,18 +201,18 @@ void Matrix::clear() {
     }
 }
 
-Matrix Matrix::row(int i) {
-    Matrix r(1, w_, 'o');
+Matrix* Matrix::row(int i) {
+    Matrix* r = new Matrix(1, w_, 'o');
     for (int j = 0; j < w_; j++) {
-        r.insert(1, j, at(i, j));
+        r->insert(1, j, at(i, j));
     }
     return r;
 }
 
-Matrix Matrix::col(int j) {
-    Matrix c(h_, 1, 'o');
+Matrix* Matrix::col(int j) {
+    Matrix* c = new Matrix(h_, 1, 'o');
     for (int i = 0; i < h_; i++) {
-        c.insert(i, 1, at(i, j));
+        c->insert(i, 1, at(i, j));
     }
     return c;
 }

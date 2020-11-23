@@ -1,25 +1,36 @@
 #include "network.h"
 
 Layer::Layer(Network* parent): net_(parent) {
-	Matrix W(lsize_, isize_ + 1);
-	Matrix A(lsize_, 1, 'o');
-	Matrix O(A);
-	Matrix D(A);
-	Matrix I(isize_, 1, 'o');
-	W_ = W;
-	A_ = A;
-	O_ = O;
-	D_ = D;
-	I_ = I;
+	std::cout << "Layer constructor\n";
+	W_ = nullptr;
+	A_ = nullptr;
+	O_ = nullptr;
+	D_ = nullptr;
+	I_ = nullptr;
 	isize_ = 0;
 	lsize_ = 0;
 	next_ = nullptr;
-	prev_ = nullptr;
+	activ_ = nullptr;
+
+	std::cout << "Setting prev_\n";
+	prev_ = net_->getOut();
+	if (prev_ != nullptr) {
+		std::cout << " and prev_->next_\n";
+		prev_->setNext(this);
+	}
+	std::cout << "Constructed\n";
 }
 
-Layer::~Layer(){}
+Layer::~Layer() {
+	delete W_;
+	delete A_;
+	delete O_;
+	delete D_;
+	delete I_;
+}
 
 void Layer::setup() {
+	std::cout << "Layer::setup\n";
 	if (prev_ == nullptr) {
 		std::cout << "Set input size: ";
 		std::cin >> isize_;
@@ -29,6 +40,8 @@ void Layer::setup() {
 	}
 	std::cout << "Set layer size: ";
 	std::cin >> lsize_;
+
+	W_ = new Matrix(lsize_, isize_ + 1);
 
 	int choice = 0;
 	bool choosing = true;
@@ -66,23 +79,43 @@ void Layer::setPrev(Layer* p) {
 	prev_ = p;
 }
 
-void Layer::feedForward(Matrix& In) {
-	I_ = In.appendOne(); // For the bias in matrix W_
-	A_ = W_ * I_;
-	O_ = A_.eWise(activ_);
+void Layer::feedForward(Matrix* In) {
+	std::cout << "Layer::feedForward\n";
+	delete I_;
+	I_ = In->appendOne(); // For the bias in matrix W_
+	std::cout << "In:\n";
+	In->print();
+	std::cout << "moi\n";
+	delete A_;
+	A_ = *W_ * *I_;
+	std::cout << "A_ (size " << I_->size().first << "x" << A_->size().second << "):\n";
+	A_->print();
+	delete O_;
+	O_ = A_->eWise(activ_);
+	std::cout << "O_:\n";
+	O_->print();
 	if (next_ != nullptr) {
 		next_->feedForward(O_);
 	}
 	net_->receiveOutput(O_);
 }
 
-void Layer::backpropagate(Matrix& D_upper, Matrix& W_upper) {
+void Layer::backpropagate(Matrix* D_upper, Matrix* W_upper) {
 	if (next_ == nullptr) {
-		D_ = D_upper.eWiseMul(O_);
+		delete D_;
+		D_ = D_upper->eWiseMul(O_);
 	}
 	else {
-		Matrix Fp = A_.eWise(activ_, true);
-		D_ = ((W_upper.transpose()) * D_upper).eWiseMul(Fp);
+		Matrix* W_t = W_upper->transpose();
+		Matrix* P = *W_t * *D_upper;
+		Matrix* dO = A_->eWise(activ_, true);
+
+		delete D_;
+		D_ = P->eWiseMul(dO);
+
+		delete W_t;
+		delete P;
+		delete dO;
 	}
 	updateW();
 	if (prev_ != nullptr) {
@@ -103,14 +136,16 @@ std::pair<int, int> Layer::size() {
 	all vectors (like inputs, outputs and deltas) will be matrices. Look into indexing before attempting!
 */
 void Layer::updateW() {
-	Matrix dW(lsize_, isize_ + 1, 'o');
+	Matrix* dW = new Matrix(lsize_, isize_ + 1, 'o');
 	for (int i = 0; i < lsize_; i++) {
-		dW.insert(i, 0, -(net_->getL()) * D_.at(i, 0)); // Bias adjustment (NOT BATCH COMPATIBLE)
+		dW->insert(i, 0, -(net_->getL()) * D_->at(i, 0)); // Bias adjustment (NOT BATCH COMPATIBLE)
 		for (int j = 1; j < isize_ + 1; j++) {
-			dW.insert(i, j, -(net_->getL() * I_.at(j, 0) * D_.at(i, 0) + net_->getR() * W_.at(i, j)));
+			dW->insert(i, j, -(net_->getL() * I_->at(j, 0) * D_->at(i, 0) + net_->getR() * W_->at(i, j)));
 		}
 	}
-	W_ + dW; // Updating values
+	delete W_;
+	W_ = *W_ + *dW;
+	delete dW;
 }
 
 void Layer::makeRelu() {
@@ -150,15 +185,16 @@ Network::Network() {
 					<< "[3] Start testing\n";
 		std::cin >> choice;
 
-		Layer l(this);
+		Layer* layer = nullptr;
 		switch (choice)
 		{
 		case 1:
-			l.setup();
+			layer = new Layer(this);
+			layer->setup();
 			if (in_ == nullptr) {
-				in_ = &l;
+				in_ = layer;
 			}
-			out_ = &l;
+			out_ = layer;
 			break;
 		case 2:
 			setHypers();
@@ -181,13 +217,17 @@ Network::Network() {
 Network::~Network() {}
 
 void Network::feedInput() {
-	Matrix I(in_->size().first, 1);
+	Matrix* I = new Matrix(in_->size().first, 1);
+	std::cout << "Input (size " << in_->size().first << "x1):\n";
+	I->print();
 	in_->feedForward(I);
+	delete I;
 }
 
-void Network::receiveOutput(Matrix& O) { // set to L2, fitting sine
-	Matrix NablaL(O.eWise(loss_, true));
+void Network::receiveOutput(Matrix* O) { // set to L2, fitting sine
+	Matrix* NablaL = O->eWise(loss_, true);
 	out_->backpropagate(NablaL, O);
+	delete NablaL;
 }
 
 void Network::bpDone() {
@@ -202,6 +242,11 @@ double Network::getL() {
 
 double Network::getR() {
 	return rho_;
+}
+
+Layer* Network::getOut() {
+	std::cout << "Network::getOut\n";
+	return out_;
 }
 
 void Network::setHypers() {
