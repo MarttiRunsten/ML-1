@@ -26,7 +26,7 @@ Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
     default:
         std::random_device rd;
         std::mt19937 g(rd());
-        std::uniform_real_distribution<> dis(-10, 10);
+        std::uniform_real_distribution<> dis(-3.0, 3.0);
         for (int i = 0; i < h_; i++) {
             std::vector<double> row;
             for (int j = 0; j < w_; j++) {

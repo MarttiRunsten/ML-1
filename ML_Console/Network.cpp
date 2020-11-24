@@ -146,7 +146,7 @@ void Layer::updateW() {
 	for (int i = 0; i < lsize_; i++) {
 		dW->insert(i, 0, -(net_->getL()) * D_->at(i, 0)); // Bias adjustment (NOT BATCH COMPATIBLE)
 		for (int j = 1; j < isize_ + 1; j++) {
-			dW->insert(i, j, net_->getL() * I_->at(j, 0) * D_->at(i, 0) + net_->getR() * W_->at(i, j));
+			dW->insert(i, j, (net_->getL() * I_->at(j, 0) * D_->at(i, 0)) + (net_->getR() * W_->at(i, j)));
 		}
 	}
 	W_ = *W_ - *dW;
@@ -220,22 +220,20 @@ Network::~Network() {
 
 void Network::feedInput() {
 	mPtr I = std::make_shared<Matrix>(Matrix(in_->size().first, 1));
-	std::cout << "I:\n";
-	I->print();
 	in_->feedForward(I);
 }
 
 void Network::receiveOutput(mPtr O) { // set to L2, fitting sine
-	std::cout << "O:\n";
-	O->print();
 	mPtr NablaL = *O - *(in_->getI()->eWise(sin_));
 	mPtr losses = NablaL->eWiseMul(NablaL);
-	std::cout << "Is this loss? (" << losses->eSum() << ")\n";
+	std::cout << "I: " << in_->getI()->at(1,0) << '\n';
+	std::cout << "O: " << O->at(0,0) << '\n';
+	std::cout << "E: " << sin(in_->getI()->at(1, 0)) << '\n';
+	std::cout << "Loss: " << losses->eSum() << ")\n";
 	out_->backpropagate(NablaL, O);
 }
 
 void Network::bpDone() {
-	std::cout << "Network::bpDone, train " << --train_ << " more\n";
 }
 
 double Network::getL() {
@@ -260,22 +258,15 @@ void Network::setHypers() {
 
 void Network::test() {
 	bool testing = true;
-	int choice = 0;
 	while (testing) {
-		std::cout << "Testing network.\n[1] Run a forward-back loop\n[2] 3 test loops\n[Anything else] Quit\n";
-		std::cin >> choice;
-		if (choice == 1) {
-			train_ = 1;
-		}
-		else if (choice == 2) {
-			train_ = 3;
-		}
-		else {
+		std::cout << "Testing network.\nInput number of training loops: ";
+		std::cin >> train_;
+		if (train_ == 0) {
 			break;
 		}
 		while (train_ > 0) {
 			feedInput();
+			train_--;
 		}
-
 	}
 }
