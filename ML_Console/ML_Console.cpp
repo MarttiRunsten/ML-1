@@ -17,6 +17,6 @@ int main()
     double (*op_ReLU)(double) { &ReLu };
     std::cout << "Activation (elementwise ReLU):\n";
     A.eWise(op_ReLU).print(); */
-    
+    return 0;
 }
 

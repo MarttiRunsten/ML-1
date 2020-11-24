@@ -26,7 +26,7 @@ Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
     default:
         std::random_device rd;
         std::mt19937 g(rd());
-        std::uniform_real_distribution<> dis(-1.0, 1.0);
+        std::uniform_real_distribution<> dis(-10, 10);
         for (int i = 0; i < h_; i++) {
             std::vector<double> row;
             for (int j = 0; j < w_; j++) {
@@ -39,7 +39,7 @@ Matrix::Matrix(int h, int w, char type) : h_(h), w_(w) {
     contents_ = c;
 }
 
-Matrix::Matrix(const Matrix* ptr) {
+Matrix::Matrix(const mPtr ptr) {
     h_ = ptr->h_;
     w_ = ptr->w_;
     contents_ = ptr->contents_;
@@ -60,8 +60,8 @@ Matrix::Matrix() {
 
 Matrix::~Matrix() {}
 
-Matrix* Matrix::transpose() {
-    Matrix* R = new Matrix(w_, h_, 'o');
+mPtr Matrix::transpose() {
+    mPtr R = std::make_shared<Matrix>(Matrix(w_, h_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(j, i, at(i, j));
@@ -70,8 +70,8 @@ Matrix* Matrix::transpose() {
     return R;
 }
 
-Matrix* Matrix::eWise(double(*f)(double)) {
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::eWise(double(*f)(double)) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, f(at(i, j)));
@@ -80,9 +80,8 @@ Matrix* Matrix::eWise(double(*f)(double)) {
     return R;
 }
 
-Matrix* Matrix::eWise(Base* b, bool dif) {
-    std::cout << "Matrix::eWise ";
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::eWise(Base* b, bool dif) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             if (dif) {
@@ -93,13 +92,11 @@ Matrix* Matrix::eWise(Base* b, bool dif) {
             }
         }
     }
-    std::cout << "done\n";
     return R;
 }
 
-Matrix* Matrix::eWiseBin(BinBase* b, double leak, bool dif) {
-    std::cout << "Matrix::eWiseBin ";
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::eWiseBin(BinBase* b, double leak, bool dif) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             if (dif) {
@@ -110,24 +107,21 @@ Matrix* Matrix::eWiseBin(BinBase* b, double leak, bool dif) {
             }
         }
     }
-    std::cout << "done\n";
     return R;
 }
 
-Matrix* Matrix::eWiseMul(Matrix* M) {
-    std::cout << "Matrix::eWiseMul " << h_ << "x" << w_ << " with " << M->h_ << "x" << M->w_ << '\n';
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::eWiseMul(mPtr M) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, (at(i, j)) * (M->at(i, j)));
         }
     }
-    std::cout << "done\n";
     return R;
 }
 
-Matrix* Matrix::appendOne() {
-    Matrix* R = new Matrix(h_ + 1, 1, 'o');
+mPtr Matrix::appendOne() {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_ + 1, 1, 'o'));
     R->insert(0, 0, 1);
     for (int i = 0; i < h_; i++) {
         R->insert(i + 1, 0, at(i, 0));
@@ -135,24 +129,21 @@ Matrix* Matrix::appendOne() {
     return R;
 }
 
-Matrix* Matrix::removeCol() {
-    std::cout << "Matrix::removeCol ";
-    Matrix* R = new Matrix(h_, w_ - 1, 'o');
+mPtr Matrix::removeCol() {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_ - 1, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 1; j < w_; j++) {
             R->insert(i, j - 1, at(i, j));
         }
     }
-    std::cout << "done\n";
     return R;
 }
 
-Matrix* Matrix::operator *(Matrix& M) {
-    std::cout << "Operator *, multiplying (" << h_ << "x" << w_ << ") to (" << M.h_ << "x" << M.w_ << ")\n";
+mPtr Matrix::operator *(Matrix& M) {
     if (size().second != M.size().first) {
         return nullptr;
     }
-    Matrix* R = new Matrix(size().first, M.size().second, 'o');
+    mPtr R = std::make_shared<Matrix>(Matrix(size().first, M.size().second, 'o'));
     double s;
     for (int i = 0; i < R->size().first; i++) {
         for (int j = 0; j < R->size().second; j++) {
@@ -163,12 +154,11 @@ Matrix* Matrix::operator *(Matrix& M) {
             R->insert(i, j, s);
         }
     }
-    std::cout << "done\n";
     return R;
 }
 
-Matrix* Matrix::operator *(int a) {
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::operator *(int a) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, at(i, j) * a);
@@ -177,8 +167,8 @@ Matrix* Matrix::operator *(int a) {
     return R;
 }
 
-Matrix* Matrix::operator *(const double a) {
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::operator *(const double a) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, at(i, j) * a);
@@ -187,8 +177,8 @@ Matrix* Matrix::operator *(const double a) {
     return R;
 }
 
-Matrix* Matrix::operator +(Matrix& M) {
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::operator +(Matrix& M) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, at(i, j) + M.at(i, j));
@@ -197,8 +187,8 @@ Matrix* Matrix::operator +(Matrix& M) {
     return R;
 }
 
-Matrix* Matrix::operator -(Matrix& M) {
-    Matrix* R = new Matrix(h_, w_, 'o');
+mPtr Matrix::operator -(Matrix& M) {
+    mPtr R = std::make_shared<Matrix>(Matrix(h_, w_, 'o'));
     for (int i = 0; i < h_; i++) {
         for (int j = 0; j < w_; j++) {
             R->insert(i, j, at(i, j) - M.at(i, j));
@@ -233,16 +223,16 @@ void Matrix::clear() {
     }
 }
 
-Matrix* Matrix::row(int i) {
-    Matrix* r = new Matrix(1, w_, 'o');
+mPtr Matrix::row(int i) {
+    mPtr r = std::make_shared<Matrix>(Matrix(1, w_, 'o'));
     for (int j = 0; j < w_; j++) {
         r->insert(1, j, at(i, j));
     }
     return r;
 }
 
-Matrix* Matrix::col(int j) {
-    Matrix* c = new Matrix(h_, 1, 'o');
+mPtr Matrix::col(int j) {
+    mPtr c = std::make_shared<Matrix>(Matrix(h_, 1, 'o'));
     for (int i = 0; i < h_; i++) {
         c->insert(i, 1, at(i, j));
     }

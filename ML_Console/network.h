@@ -15,13 +15,13 @@ public:
 	void setNext(Layer* n);
 	void setPrev(Layer* p);
 
-	void feedForward(Matrix* In);
+	void feedForward(mPtr In);
 
-	void backpropagate(Matrix* D_upper, Matrix* W_upper);
+	void backpropagate(mPtr D_upper, mPtr W_upper);
 
 	std::pair<int, int> size();
 	Layer* getPrev();
-	Matrix* getI();
+	mPtr getI();
 
 private:
 	Network* net_;
@@ -33,11 +33,11 @@ private:
 	bool isBin_;
 	double leak_;
 
-	Matrix* W_; // Bias|Weights (Matrix)
-	Matrix* A_; // Sum of weighted inputs and bias per neuron (Vector)
-	Matrix* O_; // Output (Vector)
-	Matrix* D_; // Deltas (Vector)
-	Matrix* I_; // Inputs (Vector)
+	mPtr W_; // Bias|Weights (Matrix)
+	mPtr A_; // Sum of weighted inputs and bias per neuron (Vector)
+	mPtr O_; // Output (Vector)
+	mPtr D_; // Deltas (Vector)
+	mPtr I_; // Inputs (Vector)
 
 	void updateW();
 };
@@ -49,7 +49,7 @@ public:
 	~Network();
 
 	void feedInput();
-	void receiveOutput(Matrix* O);
+	void receiveOutput(mPtr O);
 	void bpDone();
 
 	double getL();

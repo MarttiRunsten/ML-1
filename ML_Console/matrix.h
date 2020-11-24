@@ -3,35 +3,40 @@
 #include <vector>
 #include <utility>
 #include <random>
+#include <memory>
 #include <iostream> // For debug
 
 #include "activations.h"
+
+class Matrix;
+
+using mPtr = std::shared_ptr<Matrix>;
 
 class Matrix
 {
 public:
     Matrix(int h, int w, char type = 'r');
-    Matrix(const Matrix* ptr);
+    Matrix(const mPtr ptr);
     Matrix(std::vector<std::vector<double>>& c);
     Matrix();
     ~Matrix();
 
-    Matrix* transpose();
+    mPtr transpose();
 
-    Matrix* eWise(double(*f)(double));
-    Matrix* eWise(Base* b, bool dif = false);
-    Matrix* eWiseBin(BinBase* b, double leak, bool dif = false);
-    Matrix* eWiseMul(Matrix* M);
+    mPtr eWise(double(*f)(double));
+    mPtr eWise(Base* b, bool dif = false);
+    mPtr eWiseBin(BinBase* b, double leak, bool dif = false);
+    mPtr eWiseMul(mPtr M);
 
-    Matrix* appendOne();
-    Matrix* removeCol();
+    mPtr appendOne();
+    mPtr removeCol();
 
-    Matrix* operator *(Matrix& M);
-    Matrix* operator *(int a);
-    Matrix* operator *(double a);
+    mPtr operator *(Matrix& M);
+    mPtr operator *(int a);
+    mPtr operator *(double a);
 
-    Matrix* operator +(Matrix& M);
-    Matrix* operator -(Matrix& M);
+    mPtr operator +(Matrix& M);
+    mPtr operator -(Matrix& M);
 
     double eSum();
 
@@ -39,8 +44,8 @@ public:
     void insert(int i, int j, double val);
     void clear();
 
-    Matrix* row(int i);
-    Matrix* col(int j);
+    mPtr row(int i);
+    mPtr col(int j);
 
     const std::pair<int, int> size();
 
